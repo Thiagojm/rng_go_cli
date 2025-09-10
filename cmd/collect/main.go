@@ -122,11 +122,22 @@ func main() {
 			return truerng.ReadBits(bitCount)
 		}
 	case naming.DeviceBitBabbler:
+		// Check presence first for clearer errors
+		ok, devices, derr := bbusb.IsBitBabblerConnected()
+		if derr != nil {
+			log.Fatalf("bitb detect: %v", derr)
+		}
+		if !ok {
+			log.Fatal("No BitBabbler devices found (VID 0x0403 PID 0x7840)")
+		}
 		sess, oerr := bbusb.OpenBitBabbler(2_500_000, 1)
 		if oerr != nil {
-			log.Fatalf("bitb open: %v", oerr)
+			log.Fatalf("bitb open: %v (ensure libusb-1.0.dll is available)", oerr)
 		}
 		defer sess.Close()
+		if len(devices) > 0 && devices[0].FriendlyName != "" {
+			log.Printf("using BitBabbler: %s", devices[0].FriendlyName)
+		}
 		readBits = func(ctx context.Context) ([]byte, error) {
 			buf := make([]byte, byteCount)
 			// Short per-read timeout to avoid hanging.
@@ -158,6 +169,7 @@ func main() {
 	defer ticker.Stop()
 
 	log.Printf("collecting %d bits every %s from %s", bitCount, interval.String(), string(dev))
+	sampleNum := 0
 	for {
 		select {
 		case <-ctx.Done():
@@ -182,11 +194,15 @@ func main() {
 
 		// Compute ones across the intended bitCount
 		ones := countOnes(batch, bitCount)
+		sampleNum++
 		ts := time.Now().Format("20060102T15:04:05")
 		if _, werr := fmt.Fprintf(csvBuf, "%s,%d\n", ts, ones); werr != nil {
 			log.Fatalf("write csv: %v", werr)
 		}
 		_ = csvBuf.Flush()
+
+		// Print progress to terminal
+		fmt.Printf("sample %d: ones=%d/%d at %s\n", sampleNum, ones, bitCount, ts)
 
 		select {
 		case <-ctx.Done():

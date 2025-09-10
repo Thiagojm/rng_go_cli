@@ -15,6 +15,11 @@ It collects N bits every M seconds until stopped, streaming to:
 - For BitBabbler:
   - `libusb-1.0.dll` available in your working directory or on PATH
   - If detection fails, place the provided `libusb-1.0.dll` in the repo root or add its folder to PATH
+    - Install MSYS2 (C:\msys64) and open “MSYS2 MinGW x64” shell, then:
+    ```powershell
+      pacman -Syu
+      pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-libusb mingw-w64-x86_64-pkg-config
+      ```
 - For TrueRNG3:
   - Proper serial drivers installed (the CLI auto-detects by port description)
 

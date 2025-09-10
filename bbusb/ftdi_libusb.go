@@ -305,9 +305,9 @@ func (s *DeviceSession) ReadRandom(ctx context.Context, buf []byte) (int, error)
 
 func (s *DeviceSession) control(req uint8, value uint16, index uint16, data []byte, in bool) error {
 	// bmRequestType fields combined
-	typ := gousb.ControlOut | gousb.ControlVendor | gousb.ControlDevice
+	typ := uint8(gousb.ControlOut) | uint8(gousb.ControlVendor) | uint8(gousb.ControlDevice)
 	if in {
-		typ = gousb.ControlIn | gousb.ControlVendor | gousb.ControlDevice
+		typ = uint8(gousb.ControlIn) | uint8(gousb.ControlVendor) | uint8(gousb.ControlDevice)
 	}
 	_, err := s.dev.Control(uint8(typ), req, value, index, data)
 	return err
